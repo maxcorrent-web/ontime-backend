@@ -10,7 +10,7 @@ const fetchMergedCalendar = async () => {
 
   console.log(res.data); // merged events
 };
-const path = require('path');
+import path from "path";
 
 // Serve frontend build folder
 app.use(express.static(path.join(__dirname, '../frontend/build')));
