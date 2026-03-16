@@ -7,9 +7,9 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.4.0",
-    "cors": "^2.8.5",
-    "ical": "^0.10.2"
-  }
+  "axios": "^1.4.0",
+  "cors": "^2.8.5",
+  "express": "^4.18.2",
+  "ical": "^0.8.0"
+}
 }
