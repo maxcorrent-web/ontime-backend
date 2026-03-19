@@ -60,4 +60,7 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+app.post("/api/clear", (req, res) => {
+  calendars = [];
+  res.json({ message: "Cleared calendars" });
 });
