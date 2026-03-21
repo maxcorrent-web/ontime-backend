@@ -25,11 +25,13 @@ app.post("/api/add-ics", async (req, res) => {
       const ev = data[key];
       if (ev.type === "VEVENT") {
         events.push({
-          title: ev.summary || "No Title",
-          start: ev.start,
-          end: ev.end,
-          source: source,
-        });
+  title: ev.summary || "No Title",
+  start: new Date(ev.start).toISOString(),
+  end: ev.end
+    ? new Date(ev.end).toISOString()
+    : new Date(ev.start).toISOString(),
+  source: source,
+});
       }
     }
 
