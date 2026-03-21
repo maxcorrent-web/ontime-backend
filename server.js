@@ -1,63 +1,48 @@
-import express from "express";
-import cors from "cors";
-import axios from "axios";
-import ical from "node-ical";
+const express = require("express");
+const cors = require("cors");
+const ical = require("node-ical");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-let calendars = [];
+let events = [];
 
+// Clear events
+app.post("/api/clear", (req, res) => {
+  events = [];
+  res.json({ success: true });
+});
+
+// Add ICS
 app.post("/api/add-ics", async (req, res) => {
+  const { url, source } = req.body;
+
   try {
-    const { url } = req.body;
-let source = "other";
-if (url.includes("schoology")) source = "schoology";
-if (url.includes("band")) source = "band";
-if (url.includes("google")) source = "google";
-    console.log("Fetching ICS from:", url);
+    const data = await ical.async.fromURL(url);
 
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0"
+    for (const key in data) {
+      const ev = data[key];
+      if (ev.type === "VEVENT") {
+        events.push({
+          title: ev.summary || "No Title",
+          start: ev.start,
+          end: ev.end,
+          source: source,
+        });
       }
-    });
-
-    const data = ical.parseICS(response.data);
-
-    const events = Object.values(data)
-      .filter(event => event.type === "VEVENT")
-      .map(event => ({
-  title: event.summary || "No Title",
-  start: new Date(event.start).toISOString(),
-  end: event.end
-    ? new Date(event.end).toISOString()
-    : new Date(event.start).toISOString(),
-  source,
-}));
-
-// Remove duplicates
-const uniqueEvents = [];
-const seen = new Set();
-
-for (const ev of events) {
-  const key = ev.title + ev.start;
-  if (!seen.has(key)) {
-    seen.add(key);
-    uniqueEvents.push(ev);
-  }
-}
-
-calendars.push(...uniqueEvents);
-      }));
-
-    calendars.push(...events);
+    }
 
     res.json({ success: true });
-
   } catch (err) {
-    console.error("ICS ERROR:", err.message);
-    res.status(500).json({ error: "Failed to load calendar" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to load ICS" });
   }
 });
+
+// Get events
+app.get("/api/events", (req, res) => {
+  res.json(events);
+});
+
+app.listen(3001, () => console.log("Server running"));
