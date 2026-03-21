@@ -12,7 +12,10 @@ let calendars = [];
 app.post("/api/add-ics", async (req, res) => {
   try {
     const { url } = req.body;
-
+let source = "other";
+if (url.includes("schoology")) source = "schoology";
+if (url.includes("band")) source = "band";
+if (url.includes("google")) source = "google";
     console.log("Fetching ICS from:", url);
 
     const response = await axios.get(url, {
@@ -26,9 +29,27 @@ app.post("/api/add-ics", async (req, res) => {
     const events = Object.values(data)
       .filter(event => event.type === "VEVENT")
       .map(event => ({
-        title: event.summary || "No Title",
-        start: event.start,
-        end: event.end,
+  title: event.summary || "No Title",
+  start: new Date(event.start).toISOString(),
+  end: event.end
+    ? new Date(event.end).toISOString()
+    : new Date(event.start).toISOString(),
+  source,
+}));
+
+// Remove duplicates
+const uniqueEvents = [];
+const seen = new Set();
+
+for (const ev of events) {
+  const key = ev.title + ev.start;
+  if (!seen.has(key)) {
+    seen.add(key);
+    uniqueEvents.push(ev);
+  }
+}
+
+calendars.push(...uniqueEvents);
       }));
 
     calendars.push(...events);
